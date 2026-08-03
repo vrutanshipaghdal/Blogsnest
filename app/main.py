@@ -18,11 +18,9 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 app.include_router(auth_router)
 app.include_router(blog_router)
 
-
 @app.get("/")
 def root():
     return RedirectResponse(url="/blogs")
-
 
 @app.exception_handler(HTTPException)
 async def auth_redirect_handler(request: Request, exc: HTTPException):
@@ -30,6 +28,5 @@ async def auth_redirect_handler(request: Request, exc: HTTPException):
     if exc.status_code == 401:
         return RedirectResponse(url="/login")
     return await http_exception_default(request, exc)
-
 
 from fastapi.exception_handlers import http_exception_handler as http_exception_default

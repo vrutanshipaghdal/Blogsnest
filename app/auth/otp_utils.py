@@ -2,10 +2,8 @@ import random
 import string
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
-
 from app.models import OTP
 from app.config import OTP_EXPIRE_MINUTES, OTP_LENGTH
-
 
 def generate_otp_code() -> str:
     return "".join(random.choices(string.digits, k=OTP_LENGTH))
@@ -27,7 +25,6 @@ def create_otp(db: Session, email: str, purpose: str = "login") -> OTP:
     db.commit()
     db.refresh(otp)
     return otp
-
 
 def verify_otp(db: Session, email: str, otp_code: str, purpose: str = "login") -> bool:
     otp = (
