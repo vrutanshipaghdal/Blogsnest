@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Your Profile — BlogsNest{% endblock %}
+{% block content %}
+<div class="card" style="max-width:480px; margin:0 auto;">
+  <h1>Your profile</h1>
+
+  {% if msg == 'updated' %}
+    <p class="hint" style="color:#15803D; background:#DCFCE7; padding:10px 12px; border-radius:8px; margin-bottom:16px;">
+      Profile updated.
+    </p>
+  {% endif %}
+
+  <form action="/profile/update" method="post">
+    <div class="field">
+      <label for="name">Name</label>
+      <input type="text" id="name" name="name" required value="{{ current_user.name or '' }}">
+    </div>
+    <div class="field">
+      <label for="date_of_birth">Date of birth</label>
+      <input type="date" id="date_of_birth" name="date_of_birth" value="{{ current_user.date_of_birth or '' }}">
+    </div>
+    <div class="field">
+      <label for="gender">Gender</label>
+      <select id="gender" name="gender">
+        <option value="" {% if not current_user.gender %}selected{% endif %}>Prefer not to say</option>
+        <option value="male" {% if current_user.gender == 'male' %}selected{% endif %}>Male</option>
+        <option value="female" {% if current_user.gender == 'female' %}selected{% endif %}>Female</option>
+        <option value="other" {% if current_user.gender == 'other' %}selected{% endif %}>Other</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Email</label>
+      <input type="email" value="{{ current_user.email }}" disabled style="background:#F1F5F9; color:var(--ink-soft);">
+      <p class="hint" style="margin-top:6px;">Email can't be changed here (it's how you log in).</p>
+    </div>
+    <button class="btn" type="submit">Save changes</button>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}BlogsNest{% endblock %}</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="masthead">
+    <div class="masthead-inner">
+      <a href="/blogs" class="title"><span class="logo-mark">Bn</span>BlogsNest</a>
+      <nav>
+        {% if current_user %}
+          <span>{{ current_user.name or current_user.email }}</span>
+          <a href="/profile">Profile</a>
+          <a href="/logout">Logout</a>
+          <a href="/blogs/new" class="cta">Write</a>
+        {% else %}
+          <a href="/login">Login</a>
+          <a href="/signup" class="cta">Sign Up</a>
+        {% endif %}
+      </nav>
+    </div>
+  </div>
+  <div class="wrap">
+    {% block content %}{% endblock %}
+  </div>
+</body>
+</html>

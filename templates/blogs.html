@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}All Posts — BlogsNest{% endblock %}
+{% block content %}
+
+<div class="page-head">
+  <div>
+    <h1>All posts</h1>
+    <p>Written by everyone on BlogsNest — edit access only for the author.</p>
+  </div>
+</div>
+
+{% if blogs|length == 0 %}
+  <div class="empty">No posts yet. {% if current_user %}<a href="/blogs/new">Write the first one →</a>{% else %}<a href="/login">Login</a> to write one.{% endif %}</div>
+{% endif %}
+
+{% for blog in blogs %}
+<div class="entry">
+  <div class="entry-title">
+    <a href="/blogs/{{ blog.id }}">{{ blog.title }}</a>
+    {% if current_user and blog.owner_id == current_user.id %}
+      <span class="owner-tag">YOURS</span>
+    {% endif %}
+  </div>
+  <div class="entry-meta">
+    <span class="avatar">{{ (blog.owner.name or blog.owner.email)[0]|upper }}</span>
+    {{ blog.owner.name or blog.owner.email }} &middot; {{ blog.created_at.strftime('%d %b %Y') }}
+  </div>
+  <div class="entry-excerpt">{{ blog.content[:160] }}{% if blog.content|length > 160 %}…{% endif %}</div>
+</div>
+{% endfor %}
+
+{% endblock %}
