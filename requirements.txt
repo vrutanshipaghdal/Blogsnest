@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+sqlalchemy
+pydantic
+pydantic-settings
+python-jose[cryptography]
+pika
+jinja2
+python-multipart
+itsdangerous
+email-validator

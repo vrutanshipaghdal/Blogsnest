@@ -9,8 +9,23 @@
   </div>
 </div>
 
+<form action="/blogs" method="get" style="margin-bottom:24px;">
+  <input type="text" name="q" value="{{ q }}" placeholder="Search posts by title or content..."
+         style="width:100%; padding:11px 13px; border:1.5px solid var(--rule); border-radius:8px; font-size:15px; font-family:'Inter',sans-serif;">
+</form>
+
+{% if q %}
+  <p class="hint" style="margin-bottom:16px;">
+    {{ blogs|length }} result{% if blogs|length != 1 %}s{% endif %} for "<strong>{{ q }}</strong>" &middot; <a href="/blogs">clear</a>
+  </p>
+{% endif %}
+
 {% if blogs|length == 0 %}
-  <div class="empty">No posts yet. {% if current_user %}<a href="/blogs/new">Write the first one →</a>{% else %}<a href="/login">Login</a> to write one.{% endif %}</div>
+  {% if q %}
+    <div class="empty">No posts match "{{ q }}". <a href="/blogs">Clear search</a></div>
+  {% else %}
+    <div class="empty">No posts yet. {% if current_user %}<a href="/blogs/new">Write the first one →</a>{% else %}<a href="/login">Login</a> to write one.{% endif %}</div>
+  {% endif %}
 {% endif %}
 
 {% for blog in blogs %}
@@ -23,7 +38,8 @@
   </div>
   <div class="entry-meta">
     <span class="avatar">{{ (blog.owner.name or blog.owner.email)[0]|upper }}</span>
-    {{ blog.owner.name or blog.owner.email }} &middot; {{ blog.created_at.strftime('%d %b %Y') }}
+    {{ blog.owner.name or blog.owner.email }} &middot; {{ (blog.created_at|to_ist).strftime('%d %b %Y') }}
+    &middot; ❤️ {{ blog.likes|length }} likes
   </div>
   <div class="entry-excerpt">{{ blog.content[:160] }}{% if blog.content|length > 160 %}…{% endif %}</div>
 </div>

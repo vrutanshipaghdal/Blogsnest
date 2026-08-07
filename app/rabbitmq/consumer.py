@@ -13,8 +13,8 @@ same handler functions directly instead. See app/rabbitmq/handlers.py.
 import json
 import pika
 
-from app.config import RABBITMQ_HOST, QUEUE_OTP, QUEUE_BLOG_PUBLISHED, QUEUE_USER_REGISTERED
-from app.rabbitmq.handlers import do_otp, do_user_registered, do_blog_published
+from app.config import RABBITMQ_HOST, QUEUE_OTP, QUEUE_BLOG_PUBLISHED, QUEUE_USER_REGISTERED, QUEUE_COMMENT_POSTED
+from app.rabbitmq.handlers import do_otp, do_user_registered, do_blog_published, do_comment_posted
 
 MAX_RETRIES = 3
 
@@ -66,6 +66,10 @@ def handle_blog_published(ch, method, properties, body):
     process_with_retry(ch, method, properties, body, QUEUE_BLOG_PUBLISHED, do_blog_published)
 
 
+def handle_comment_posted(ch, method, properties, body):
+    process_with_retry(ch, method, properties, body, QUEUE_COMMENT_POSTED, do_comment_posted)
+
+
 def main():
     connection = pika.BlockingConnection(pika.ConnectionParameters(host=RABBITMQ_HOST))
     channel = connection.channel()
@@ -73,12 +77,14 @@ def main():
     channel.queue_declare(queue=QUEUE_OTP, durable=True)
     channel.queue_declare(queue=QUEUE_BLOG_PUBLISHED, durable=True)
     channel.queue_declare(queue=QUEUE_USER_REGISTERED, durable=True)
+    channel.queue_declare(queue=QUEUE_COMMENT_POSTED, durable=True)
 
     channel.basic_qos(prefetch_count=1)
 
     channel.basic_consume(queue=QUEUE_OTP, on_message_callback=handle_otp_message)
     channel.basic_consume(queue=QUEUE_BLOG_PUBLISHED, on_message_callback=handle_blog_published)
     channel.basic_consume(queue=QUEUE_USER_REGISTERED, on_message_callback=handle_user_registered)
+    channel.basic_consume(queue=QUEUE_COMMENT_POSTED, on_message_callback=handle_comment_posted)
 
     print("Worker started. Waiting for messages... (Ctrl+C to stop)")
     try:

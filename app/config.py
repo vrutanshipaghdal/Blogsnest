@@ -21,3 +21,15 @@ RABBITMQ_HOST = os.getenv("RABBITMQ_HOST", "localhost")
 QUEUE_OTP = "otp_requested"
 QUEUE_BLOG_PUBLISHED = "blog_published"
 QUEUE_USER_REGISTERED = "user_registered"
+QUEUE_COMMENT_POSTED = "comment_posted"
+
+# --- Real email (SMTP) ---
+# Fill these in to send REAL emails instead of writing to sent_emails.log.
+# Gmail example: SMTP_USER is your gmail address, SMTP_PASSWORD is a
+# Gmail "App Password" (NOT your normal password) - generate one at
+# https://myaccount.google.com/apppasswords (needs 2-Step Verification on).
+SMTP_HOST = os.getenv("SMTP_HOST", "")
+SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
+SMTP_USER = os.getenv("SMTP_USER", "")
+SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
+SMTP_FROM = os.getenv("SMTP_FROM", SMTP_USER)

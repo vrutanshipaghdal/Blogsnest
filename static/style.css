@@ -16,7 +16,8 @@
 
 body {
   margin: 0;
-  background: var(--bg);
+  background: #CBE0F5 url('/static/user-light-blue-bg.jpg') no-repeat center top fixed !important;
+  background-size: cover !important;
   color: var(--ink);
   font-family: 'Inter', -apple-system, sans-serif;
   line-height: 1.55;
@@ -67,13 +68,14 @@ body {
   font-weight: 800;
 }
 
-.masthead nav { display: flex; align-items: center; gap: 22px; }
+.masthead nav { display: flex; align-items: center; }
 
 .masthead nav a, .masthead nav span {
   font-size: 14px;
   font-weight: 500;
   color: #94A3B8;
   text-decoration: none;
+  margin-left: 20px;
 }
 
 .masthead nav a:hover { color: var(--white); }
@@ -111,12 +113,14 @@ body {
 
 /* --- Blog list: cards with shadow, not a plain list --- */
 .entry {
-  background: var(--white);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border: 1px solid var(--rule);
   border-radius: 10px;
   padding: 20px 22px;
   margin-bottom: 14px;
-  box-shadow: 0 1px 2px rgba(15,23,42,0.04);
+  box-shadow: 0 4px 12px rgba(15,23,42,0.06);
   transition: box-shadow 0.15s ease, transform 0.15s ease;
 }
 
@@ -192,12 +196,14 @@ body {
 
 /* --- Forms / cards --- */
 .card {
-  background: var(--white);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border: 1px solid var(--rule);
   border-radius: 12px;
   padding: 36px;
   margin-top: 12px;
-  box-shadow: 0 1px 3px rgba(15,23,42,0.05);
+  box-shadow: 0 4px 12px rgba(15,23,42,0.06);
 }
 
 .card h1 {

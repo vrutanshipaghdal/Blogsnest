@@ -1,6 +1,6 @@
 import json
-from app.config import RABBITMQ_HOST, QUEUE_OTP, QUEUE_BLOG_PUBLISHED, QUEUE_USER_REGISTERED, USE_RABBITMQ
-from app.rabbitmq.handlers import do_otp, do_user_registered, do_blog_published
+from app.config import RABBITMQ_HOST, QUEUE_OTP, QUEUE_BLOG_PUBLISHED, QUEUE_USER_REGISTERED, QUEUE_COMMENT_POSTED, USE_RABBITMQ
+from app.rabbitmq.handlers import do_otp, do_user_registered, do_blog_published, do_comment_posted
 
 
 def get_connection():
@@ -48,3 +48,16 @@ def publish_blog_published(blog_id: int, title: str, owner_email: str):
         _publish(QUEUE_BLOG_PUBLISHED, message)
     else:
         do_blog_published(message)
+
+
+def publish_comment_posted(blog_id: int, blog_title: str, blog_owner_email: str, commenter_name: str):
+    message = {
+        "blog_id": blog_id,
+        "blog_title": blog_title,
+        "blog_owner_email": blog_owner_email,
+        "commenter_name": commenter_name,
+    }
+    if USE_RABBITMQ:
+        _publish(QUEUE_COMMENT_POSTED, message)
+    else:
+        do_comment_posted(message)

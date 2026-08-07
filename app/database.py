@@ -8,9 +8,7 @@ engine = create_engine(
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
-
 def get_db():
-    """FastAPI dependency - yields a DB session and always closes it."""
     db = SessionLocal()
     try:
         yield db

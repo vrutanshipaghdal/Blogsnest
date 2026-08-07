@@ -9,17 +9,49 @@ it can be called two ways:
 from datetime import datetime
 from app.database import SessionLocal
 from app.models import AuditLog
+from app.config import SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD, SMTP_FROM
 
 EMAIL_LOG_FILE = "sent_emails.log"
 
 
 def send_email_mock(to: str, subject: str, body: str):
-    """No real SMTP configured yet, so we 'send' by writing to a log file.
-    Swap this out for smtplib / SendGrid / SES later - rest of the flow doesn't change."""
+    """
+    Sends a REAL email via SMTP if SMTP_HOST/SMTP_USER/SMTP_PASSWORD are set
+    (see app/config.py). Otherwise falls back to writing the message to
+    sent_emails.log so the flow still works for testing.
+
+    Gmail setup:
+      1. Turn on 2-Step Verification: myaccount.google.com/security
+      2. Create an App Password: myaccount.google.com/apppasswords
+      3. Set env vars (same terminal, before running uvicorn):
+           $env:SMTP_HOST = "smtp.gmail.com"
+           $env:SMTP_USER = "youraddress@gmail.com"
+           $env:SMTP_PASSWORD = "the 16-character app password"
+    """
+    if SMTP_HOST and SMTP_USER and SMTP_PASSWORD:
+        try:
+            import smtplib
+            from email.mime.text import MIMEText
+
+            msg = MIMEText(body)
+            msg["Subject"] = subject
+            msg["From"] = SMTP_FROM
+            msg["To"] = to
+
+            with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
+                server.starttls()
+                server.login(SMTP_USER, SMTP_PASSWORD)
+                server.sendmail(SMTP_FROM, to, msg.as_string())
+
+            print(f"[email] REAL email sent to {to}: {subject}")
+            return
+        except Exception as e:
+            print(f"[email] SMTP send failed ({e}), falling back to log file")
+
     with open(EMAIL_LOG_FILE, "a") as f:
         f.write(f"\n--- {datetime.utcnow().isoformat()} ---\n")
         f.write(f"To: {to}\nSubject: {subject}\n{body}\n")
-    print(f"[email] sent to {to}: {subject}")
+    print(f"[email-mock] sent to {to}: {subject}")
 
 
 def do_otp(data: dict):
@@ -60,5 +92,27 @@ def do_blog_published(data: dict):
         print(f"[search-index] would index blog {blog_id}: '{title}'")
         print(f"[cache] would clear blog-list cache")
         print(f"[notify] would notify subscribers about new blog '{title}'")
+    finally:
+        db.close()
+
+
+def do_comment_posted(data: dict):
+    blog_id = data["blog_id"]
+    blog_title = data["blog_title"]
+    blog_owner_email = data["blog_owner_email"]
+    commenter_name = data["commenter_name"]
+
+    # don't email yourself when you comment on your own post
+    if blog_owner_email and commenter_name != blog_owner_email:
+        send_email_mock(
+            blog_owner_email,
+            f"New comment on '{blog_title}'",
+            f"{commenter_name} commented on your post '{blog_title}'.",
+        )
+
+    db = SessionLocal()
+    try:
+        db.add(AuditLog(action="comment_posted", blog_id=blog_id, detail=f"by {commenter_name}"))
+        db.commit()
     finally:
         db.close()

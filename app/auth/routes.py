@@ -13,12 +13,16 @@ from app.rabbitmq.publisher import publish_otp_requested, publish_user_registere
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
+from app.template_filters import to_ist
+templates.env.filters["to_ist"] = to_ist
+
 
 # ---------- SIGN UP (new account: name + email + optional dob/gender) ----------
 
 @router.get("/signup", response_class=HTMLResponse)
 def signup_page(request: Request):
     return templates.TemplateResponse(request, "auth.html", {"stage": "signup"})
+
 
 @router.post("/auth/register")
 def register(
@@ -58,6 +62,7 @@ def register(
 def login_page(request: Request, msg: str | None = None, email: str | None = None):
     return templates.TemplateResponse(request, "auth.html", {"stage": "login", "msg": msg, "email": email})
 
+
 @router.post("/auth/request-otp")
 def request_otp(email: str = Form(...), db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == email).first()
@@ -69,12 +74,12 @@ def request_otp(email: str = Form(...), db: Session = Depends(get_db)):
 
     return RedirectResponse(url=f"/verify?email={email}&purpose=login", status_code=303)
 
-
 # ---------- OTP VERIFY (shared by both flows) ----------
 
 @router.get("/verify", response_class=HTMLResponse)
 def verify_page(request: Request, email: str, purpose: str = "login"):
     return templates.TemplateResponse(request, "auth.html", {"stage": "verify", "email": email, "purpose": purpose})
+
 
 @router.post("/auth/verify-otp")
 def verify_otp_route(
@@ -97,7 +102,7 @@ def verify_otp_route(
 
     # login flow -> actually log them in
     token = create_access_token(user.id, user.email)
-    response = RedirectResponse(url="/blogs", status_code=303)
+    response = RedirectResponse(url="/dashboard", status_code=303)
     response.set_cookie(
         key="access_token",
         value=token,
@@ -106,19 +111,22 @@ def verify_otp_route(
     )
     return response
 
+
 @router.get("/logout")
 def logout():
     response = RedirectResponse(url="/login", status_code=303)
     response.delete_cookie("access_token")
     return response
 
-# -------- PROFILE (view + update) -----
+
+# ---------- PROFILE (view + update) ----------
 
 @router.get("/profile", response_class=HTMLResponse)
 def profile_page(request: Request, current_user: User = Depends(get_current_user), msg: str | None = None):
     return templates.TemplateResponse(
         request, "profile.html", {"current_user": current_user, "msg": msg}
     )
+
 
 @router.post("/profile/update")
 def update_profile(

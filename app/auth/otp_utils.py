@@ -1,9 +1,11 @@
 import random
 import string
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from sqlalchemy.orm import Session
+
 from app.models import OTP
 from app.config import OTP_EXPIRE_MINUTES, OTP_LENGTH
+
 
 def generate_otp_code() -> str:
     return "".join(random.choices(string.digits, k=OTP_LENGTH))
@@ -26,6 +28,7 @@ def create_otp(db: Session, email: str, purpose: str = "login") -> OTP:
     db.refresh(otp)
     return otp
 
+
 def verify_otp(db: Session, email: str, otp_code: str, purpose: str = "login") -> bool:
     otp = (
         db.query(OTP)
@@ -41,7 +44,14 @@ def verify_otp(db: Session, email: str, otp_code: str, purpose: str = "login") -
 
     if not otp:
         return False
-    if otp.expires_at < datetime.utcnow():
+
+    expires_at = otp.expires_at
+    if expires_at.tzinfo is not None:
+        now = datetime.now(timezone.utc)
+    else:
+        now = datetime.utcnow()
+
+    if expires_at < now:
         return False
 
     otp.is_used = True

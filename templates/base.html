@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}BlogsNest{% endblock %}</title>
-  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="/static/style.css?v=5">
 </head>
 <body>
   <div class="masthead">
@@ -13,6 +13,8 @@
       <nav>
         {% if current_user %}
           <span>{{ current_user.name or current_user.email }}</span>
+          <a href="/dashboard">Dashboard</a>
+          <a href="/blogs">All Posts</a>
           <a href="/profile">Profile</a>
           <a href="/logout">Logout</a>
           <a href="/blogs/new" class="cta">Write</a>
