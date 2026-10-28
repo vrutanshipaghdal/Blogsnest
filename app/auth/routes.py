@@ -1,3 +1,4 @@
+import logging
 from fastapi import APIRouter, Depends, Request, Form, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
@@ -5,13 +6,14 @@ from sqlalchemy.orm import Session
 from datetime import date
 
 from app.database import get_db
-from app.models import User
+from app.models import OTP, User
 from app.auth.otp_utils import create_otp, verify_otp
 from app.auth.jwt_utils import create_access_token, get_current_user
 from app.config import JWT_EXPIRE_MINUTES
 from app.rabbitmq.publisher import publish_otp_requested, publish_user_registered
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 templates = Jinja2Templates(directory="templates")
 from app.template_filters import to_ist
 templates.env.filters["to_ist"] = to_ist
@@ -50,8 +52,8 @@ def register(
     publish_user_registered(user.id, name, email)
 
     # also kick off an OTP straight away so they can verify + log in immediately
-    otp = create_otp(db, email, purpose="signup")
-    publish_otp_requested(email, otp.otp_code, "signup")
+    otp_code = create_otp(db, email, purpose="signup")
+    publish_otp_requested(email, otp_code, "signup")
 
     return RedirectResponse(url=f"/verify?email={email}&purpose=signup", status_code=303)
 
@@ -69,8 +71,20 @@ def request_otp(email: str = Form(...), db: Session = Depends(get_db)):
     if not user:
         return RedirectResponse(url=f"/signup?msg=no_account&email={email}", status_code=303)
 
-    otp = create_otp(db, email, purpose="login")
-    publish_otp_requested(email, otp.otp_code, "login")
+    otp_code = create_otp(db, email, purpose="login")
+    try:
+        publish_otp_requested(email, otp_code, "login")
+    except Exception:
+        logger.exception("Could not deliver login OTP")
+        db.query(OTP).filter(
+            OTP.email == email,
+            OTP.purpose == "login",
+            OTP.is_used == False,
+        ).update({"is_used": True})
+        db.commit()
+        return RedirectResponse(
+            url=f"/login?msg=email_failed&email={email}", status_code=303
+        )
 
     return RedirectResponse(url=f"/verify?email={email}&purpose=login", status_code=303)
 

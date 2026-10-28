@@ -4,11 +4,17 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.exceptions import HTTPException
 from fastapi.templating import Jinja2Templates
 
-from app.database import Base, engine
+from app.database import Base, engine, SessionLocal
+from app.auth.otp_utils import migrate_plaintext_otps
 from app.auth.routes import router as auth_router
 from app.blogs.routes import router as blog_router
 
 Base.metadata.create_all(bind=engine)
+db = SessionLocal()
+try:
+    migrate_plaintext_otps(db)
+finally:
+    db.close()
 
 app = FastAPI(title="BlogsNest")
 templates = Jinja2Templates(directory="templates")

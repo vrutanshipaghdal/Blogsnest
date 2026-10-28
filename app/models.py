@@ -24,7 +24,7 @@ class OTP(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, index=True, nullable=False)
-    otp_code = Column(String, nullable=False)
+    otp_code = Column(String, nullable=False)  # Stores a salted hash, not the plaintext OTP.
     purpose = Column(String, default="login")  # login / signup
     is_used = Column(Boolean, default=False)
     expires_at = Column(DateTime, nullable=False)

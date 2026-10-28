@@ -14,6 +14,29 @@ from app.config import SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD, SMTP_FROM
 EMAIL_LOG_FILE = "sent_emails.log"
 
 
+def send_real_email(to: str, subject: str, body: str):
+    if not SMTP_HOST or not SMTP_USER or not SMTP_PASSWORD or not SMTP_FROM:
+        raise RuntimeError(
+            "SMTP is not configured. Set SMTP_HOST, SMTP_USER, SMTP_PASSWORD, and SMTP_FROM "
+            "to deliver OTP emails."
+        )
+
+    import smtplib
+    from email.mime.text import MIMEText
+
+    msg = MIMEText(body)
+    msg["Subject"] = subject
+    msg["From"] = SMTP_FROM
+    msg["To"] = to
+
+    with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=15) as server:
+        server.starttls()
+        server.login(SMTP_USER, SMTP_PASSWORD)
+        server.sendmail(SMTP_FROM, to, msg.as_string())
+
+    print(f"[email] REAL email sent to {to}: {subject}")
+
+
 def send_email_mock(to: str, subject: str, body: str):
     """
     Sends a REAL email via SMTP if SMTP_HOST/SMTP_USER/SMTP_PASSWORD are set
@@ -60,7 +83,7 @@ def do_otp(data: dict):
     purpose = data["purpose"]
 
     subject = "Your OTP Code" if purpose == "login" else "Verify your account"
-    send_email_mock(email, subject, f"Your OTP is: {otp_code} (valid for a few minutes)")
+    send_real_email(email, subject, f"Your OTP is: {otp_code} (valid for a few minutes)")
 
 
 def do_user_registered(data: dict):

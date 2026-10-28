@@ -74,6 +74,10 @@
         <p class="hint" style="color:#15803D; background:#DCFCE7; padding:10px 12px; border-radius:8px; margin-bottom:16px;">
           Account verified! Login below to continue.
         </p>
+      {% elif msg == 'email_failed' %}
+        <p class="hint" style="color:#B91C1C; background:#FEE2E2; padding:10px 12px; border-radius:8px; margin-bottom:16px;">
+          We couldn't send your sign-in code. Please check the email service configuration and try again.
+        </p>
       {% endif %}
       <form action="/auth/request-otp" method="post">
         <div class="field">
